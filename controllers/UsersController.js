@@ -5,11 +5,11 @@ class UsersController {
   static async postNew(req, res) {
     const { email, password } = req.body;
 
-    if (!email) return res.status(400).send('Missing email');
-    if (!password) return res.status(400).send('Missing password');
+    if (!email) return res.status(400).send({ error: 'Missing email' });
+    if (!password) return res.status(400).send({ error: 'Missing password' });
 
     const userExist = await dbClient.users.findOne({ email });
-    if (userExist) return res.status(400).send('Already exist');
+    if (userExist) return res.status(400).send({ error: 'Already exist' });
 
     const pwdSha = sha1(password);
     const { ops } = await dbClient.users.insertOne({ email, password: pwdSha });
