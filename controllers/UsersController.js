@@ -13,7 +13,7 @@ const postNew = async (req, res) => {
   const pwdSha = sha1(password);
   const { ops } = await dbClient.users.insertOne({ email, password: pwdSha });
 
-  return res.status(200).send({ id: ops[0]._id, email: ops[0].email });
+  return res.status(201).send({ id: ops[0]._id, email: ops[0].email });
 };
 
 export default {
