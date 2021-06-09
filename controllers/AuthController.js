@@ -1,5 +1,5 @@
 /* utils functions */
-import { v4 as uuid4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid';
 import sha1 from 'sha1';
 
 /* databases clients */
@@ -22,21 +22,22 @@ class AuthController {
     const user = await dbClient.users.findOne({ email, password: sha1(password) });
     if (!user) return Response.error(res, 401, 'Unauthorized');
 
-    const token = uuid4();
+    const token = uuidv4();
     const expire = 24 * 60 * 60;
     await redisClient.set(`auth_${token}`, user._id.toString(), expire);
     return Response.success(res, 200, { token });
   }
 
   static async getDisconnect(req, res) {
-    const token = req.header('X-Token');
+    const token = req.header('X-token');
     if (!token) return Response.error(res, 401, 'Unauthorized');
 
-    const key = `auth_${token}`;
-    const user = await redisClient.get(key);
-    if (!user) return Response.error(res, 401, 'Unauthorized');
-    await redisClient.del(key);
-    return res.status(204).end();
+    const tokenKey = `auth_${token}`;
+    const userId = await redisClient.get(tokenKey);
+    if (!userId) return Response.error(res, 401, 'Unauthorized');
+
+    await redisClient.del(tokenKey);
+    return Response.success(res, 204, '');
   }
 }
 
