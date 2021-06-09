@@ -1,9 +1,8 @@
 import sha1 from 'sha1';
-import { ObjectId } from 'mongodb';
+import User from '../utils/users/user';
 
 /* database clients */
 import dbClient from '../utils/db';
-import redisClient from '../utils/redis';
 
 /* HTTP response */
 import Response from '../utils/network/response';
@@ -26,15 +25,15 @@ class UsersController {
 
   static async getMe(req, res) {
     const token = req.header('X-token');
-    const tokenKey = `auth_${token}`;
+    if (!token) return Response.error(res, 401, 'Unauthorized');
+    try {
+      const tokenKey = `auth_${token}`;
+      const { _id, email } = await User.getUserByToken(tokenKey);
 
-    const userId = await redisClient.get(tokenKey);
-    if (!userId) return Response.error(res, 401, 'Unauthorized');
-
-    const user = await dbClient.users.findOne({ _id: ObjectId(userId) });
-    if (!user) return Response.error(res, 401, 'Unauthorized');
-
-    return Response.success(res, 200, { id: user._id, email: user.email });
+      return Response.success(res, 200, { id: _id, email });
+    } catch (err) {
+      return Response.error(res, 401, err.message);
+    }
   }
 }
 
