@@ -11,11 +11,12 @@ import Response from '../utils/network/response';
 
 class AuthController {
   static async getConnect(req, res) {
-    const credentials = req.header('Authorization').slice(6);
+    const credentials = req.header('Authorization');
     if (!credentials) return Response.error(res, 401, 'Unauthorized');
 
+    const authoToken = credentials.slice(6);
     const [email, password] = Buffer
-      .from(credentials, 'base64')
+      .from(authoToken, 'base64')
       .toString()
       .split(':');
 
