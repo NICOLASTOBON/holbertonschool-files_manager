@@ -17,23 +17,23 @@ class AuthController {
       .toString()
       .split(':');
 
-    const userExist = await dbClient.users.findOne({ email, password: sha1(password) });
-    if (!userExist) return Response.error(res, 401, 'Unauthorized');
+    const user = await dbClient.users.findOne({ email, password: sha1(password) });
+    if (!user) return Response.error(res, 401, 'Unauthorized');
 
     const token = uuid4();
     const expire = 24 * 60 * 60;
-    await redisClient.set(`auth_${token}`, userExist._id.toString(), expire);
+    await redisClient.set(`auth_${token}`, user._id.toString(), expire);
     return Response.success(res, 200, { token });
   }
 
   static async getDisconnect(req, res) {
     const token = req.headers['x-token'];
-    const key = `auth_${token}`;
+    const tokenKey = `auth_${token}`;
 
-    const userTokenExist = await redisClient.get(key);
-    if (!userTokenExist) return Response.error(res, 401, 'Unauthorized');
+    const userId = await redisClient.get(tokenKey);
+    if (!userId) return Response.error(res, 401, 'Unauthorized');
 
-    await redisClient.del(key);
+    await redisClient.del(tokenKey);
     return Response.success(res, 204, '');
   }
 }

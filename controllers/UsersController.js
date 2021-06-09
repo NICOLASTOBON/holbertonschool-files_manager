@@ -1,5 +1,5 @@
 import sha1 from 'sha1';
-import { ObjectId } from 'bson';
+import { ObjectId } from 'mongodb';
 
 /* database clients */
 import dbClient from '../utils/db';
@@ -26,12 +26,12 @@ class UsersController {
 
   static async getMe(req, res) {
     const token = req.headers['x-token'];
-    const key = `auth_${token}`;
+    const tokenKey = `auth_${token}`;
 
-    const userTokenExist = await redisClient.get(key);
-    if (!userTokenExist) return Response.error(res, 401, 'Unauthorized');
+    const userId = await redisClient.get(tokenKey);
+    if (!userId) return Response.error(res, 401, 'Unauthorized');
 
-    const { _id, email } = await dbClient.users.findOne({ _id: ObjectId(userTokenExist) });
+    const { _id, email } = await dbClient.users.findOne({ _id: ObjectId(userId) });
     return Response.success(res, 200, { id: _id, email });
   }
 }
