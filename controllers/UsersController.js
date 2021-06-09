@@ -25,7 +25,7 @@ class UsersController {
   }
 
   static async getMe(req, res) {
-    const token = req.headers['x-token'];
+    const token = req.headers['X-token'];
     const tokenKey = `auth_${token}`;
 
     const userId = await redisClient.get(tokenKey);
