@@ -6,6 +6,10 @@ class SuccessHandler {
   static noContent(res) {
     res.status(204).end();
   }
+
+  static created(res, message) {
+    res.status(201).json(message);
+  }
 }
 
 export default SuccessHandler;
