@@ -2,7 +2,7 @@ import Queue from 'bull';
 import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
-import ErrorHandler from '../utils/network/response';
+import ErrorHandler from '../utils/network/error';
 import redisClient from '../utils/redis';
 
 class UsersController {

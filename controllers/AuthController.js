@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import ErrorHandler from '../utils/network/response';
+import ErrorHandler from '../utils/network/error';
 import redisClient from '../utils/redis';
 import User from '../utils/utilities/user';
 
