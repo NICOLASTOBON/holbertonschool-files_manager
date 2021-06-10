@@ -1,6 +1,6 @@
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
-import { ErrorHandler, SuccessHandler } from '../utils/network/response';
+import ErrorHandler from '../utils/network/response';
 
 class AppController {
   static getStatus(req, res) {
@@ -8,14 +8,14 @@ class AppController {
     const redisIsAlive = redisClient.isAlive();
 
     return dbIsAlive && redisIsAlive
-      ? SuccessHandler.ok(res, { redis: redisIsAlive, db: dbIsAlive })
+      ? res.status(200).send({ redis: redisIsAlive, db: dbIsAlive })
       : ErrorHandler.badRequest(res, { redis: redisIsAlive, db: dbIsAlive });
   }
 
   static async getStats(req, res) {
     const numUsers = await dbClient.nbUsers();
     const numFiles = await dbClient.nbFiles();
-    return SuccessHandler.ok(res, { users: numUsers, files: numFiles });
+    return res.status(200).send({ users: numUsers, files: numFiles });
   }
 }
 

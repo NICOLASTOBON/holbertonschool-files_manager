@@ -1,18 +1,4 @@
-export class SuccessHandler {
-  static ok(res, message) {
-    res.status(200).json(message);
-  }
-
-  static created(res, message) {
-    res.status(201).json(message);
-  }
-
-  static noContent(res) {
-    res.status(204).end();
-  }
-}
-
-export class ErrorHandler {
+class ErrorHandler {
   static badRequest(res, message) {
     res.status(400).json({ error: message });
   }
@@ -25,3 +11,5 @@ export class ErrorHandler {
     res.status(404).json({ error: 'Not found' });
   }
 }
+
+export default ErrorHandler;

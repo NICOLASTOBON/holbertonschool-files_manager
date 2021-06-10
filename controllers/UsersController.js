@@ -2,7 +2,7 @@ import Queue from 'bull';
 import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
 import dbClient from '../utils/db';
-import { ErrorHandler, SuccessHandler } from '../utils/network/response';
+import ErrorHandler from '../utils/network/response';
 import redisClient from '../utils/redis';
 
 class UsersController {
@@ -20,7 +20,7 @@ class UsersController {
       password: sha1(password),
     });
     userQueue.add({ userId: newUser.ops[0]._id });
-    return SuccessHandler.created(res, { id: newUser.ops[0]._id, email });
+    return res.status(201).json({ id: newUser.ops[0]._id, email });
   }
 
   static async getMe(req, res) {
@@ -29,7 +29,7 @@ class UsersController {
     if (!userID) return ErrorHandler.unauthorized(res);
     const user = await dbClient.users.findOne({ _id: ObjectId(userID) });
     if (!user) return ErrorHandler.unauthorized(res);
-    return SuccessHandler.ok(res, { id: user._id, email: user.email });
+    return res.json({ id: user._id, email: user.email });
   }
 }
 
