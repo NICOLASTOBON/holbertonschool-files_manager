@@ -1,40 +1,46 @@
 import { v4 as uuidv4 } from 'uuid';
-import User from '../utils/users/user';
+import ErrorHandler from '../utils/network/response';
 import redisClient from '../utils/redis';
-
-/* response http */
-import Response from '../utils/network/response';
+import User from '../utils/utilities/user';
 
 class AuthController {
-  static async getConnect(req, res) {
-    try {
-      const credentials = req.header('Authorization');
-      const { _id } = await User.validUser(credentials);
+  /**
+   * GET /connect
+   * Should sign-in the user by generating a new authentication token.
+   *
+   * @param  {Object} request  - HTTP request object
+   * @param  {Object} response - HTTP response object
+   * @return {Object} http response
+   */
+  static async getConnect(request, response) {
+    const credentials = request.header('Authorization');
+    if (!credentials) return ErrorHandler.unauthorizedUser(response);
 
-      const token = uuidv4();
-      const expire = 24 * 60 * 60;
+    const validUser = await User.validUser(credentials);
+    if (validUser === null) return ErrorHandler.unauthorizedUser(response);
 
-      await redisClient.set(`auth_${token}`, _id.toString(), expire);
-      return Response.success(res, 200, { token });
-    } catch (err) {
-      return Response.error(res, 401, err.message);
-    }
+    const token = uuidv4();
+    await redisClient.set(`auth_${token}`, validUser._id.toString(), 60 * 60 * 24);
+    return response.status(200).json({ token });
   }
 
-  static async getDisconnect(req, res) {
-    const token = req.header('X-Token');
-    if (!token) return Response.error(res, 401, 'Unauthorized');
+  /**
+   * GET /disconnect
+   * Should sign-out the user based on the token.
+   *
+   * @param  {Object} request  - HTTP request object
+   * @param  {Object} response - HTTP response object
+   * @return {Object} http response
+   */
+  static async getDisconnect(request, response) {
+    const token = request.header('X-Token');
+    if (!token) return ErrorHandler.unauthorizedUser(response);
 
-    try {
-      const tokenKey = `auth_${token}`;
-
-      await User.getUserByToken(tokenKey);
-      await redisClient.del(tokenKey);
-
-      return res.status(204).end();
-    } catch (err) {
-      return Response.error(res, 401, err.message);
-    }
+    const key = `auth_${token}`;
+    const user = await redisClient.get(key);
+    if (!user) return ErrorHandler.unauthorizedUser(response);
+    await redisClient.del(key);
+    return response.status(204).end();
   }
 }
 
