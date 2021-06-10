@@ -7,7 +7,7 @@ import dbClient from '../utils/db';
 /* HTTP response */
 import Response from '../utils/network/response';
 
-class UsersController {
+class UserController {
   static async postNew(req, res) {
     const { email, password } = req.body;
 
@@ -37,4 +37,4 @@ class UsersController {
   }
 }
 
-export default UsersController;
+export default UserController;
