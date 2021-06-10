@@ -1,7 +1,10 @@
 import { v4 as uuidv4 } from 'uuid';
-import ErrorHandler from '../utils/network/error';
 import redisClient from '../utils/redis';
 import User from '../utils/utilities/user';
+
+/* Response Handler HTTP */
+import ErrorHandler from '../utils/network/error';
+import SuccessHandler from '../utils/network/success';
 
 class AuthController {
   static async getConnect(req, res) {
@@ -13,7 +16,7 @@ class AuthController {
 
     const token = uuidv4();
     await redisClient.set(`auth_${token}`, validUser._id.toString(), 60 * 60 * 24);
-    return res.status(200).json({ token });
+    return SuccessHandler.ok(res, { token });
   }
 
   static async getDisconnect(req, res) {
@@ -24,7 +27,7 @@ class AuthController {
     const user = await redisClient.get(key);
     if (!user) return ErrorHandler.unauthorized(res);
     await redisClient.del(key);
-    return res.status(204).end();
+    return SuccessHandler.noContent(res);
   }
 }
 
