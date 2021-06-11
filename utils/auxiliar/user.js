@@ -6,10 +6,12 @@ import Token from './token';
 
 class User {
   static async validUser(credentials) {
-    const authToken = Token.validToken(credentials);
-    if (!authToken) return null;
+    const userInfo = Token.getValidInfo(credentials);
+    if (!userInfo) return null;
 
-    const [email, password] = Token.getCredentials(authToken).split(':');
+    const [email, password] = userInfo.split(':');
+    if (!email || !password) return null;
+
     const user = await dbClient.users.findOne({ email, password: sha1(password) });
     if (!user) return null;
     return user;
