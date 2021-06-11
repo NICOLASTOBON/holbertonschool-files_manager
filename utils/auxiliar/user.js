@@ -2,29 +2,17 @@ import { ObjectId } from 'mongodb';
 import sha1 from 'sha1';
 import dbClient from '../db';
 import redisClient from '../redis';
+import Token from './token';
 
 class User {
-  static extractUserCredentials(credentials) {
-    const authArr = credentials.split(' ');
-    if (authArr[0] !== 'Basic') return null;
-
-    const userCredentials = Buffer.from(authArr[1], 'base64').toString();
-    const [email, password] = userCredentials.split(':');
-    return { email, password };
-  }
-
   static async validUser(credentials) {
-    const userCredentials = this.extractUserCredentials(credentials);
-    if (!userCredentials) return null;
+    const authToken = Token.validToken(credentials);
+    if (!authToken) return null;
 
-    const { email, password } = userCredentials;
-    const user = await dbClient.users.findOne({ email });
+    const [email, password] = Token.getCredentials(authToken).split(':');
+    const user = await dbClient.users.findOne({ email, password: sha1(password) });
     if (!user) return null;
-    const hashedPwd = sha1(password);
-    if (hashedPwd === user.password) {
-      return user;
-    }
-    return null;
+    return user;
   }
 
   static async findUserByToken(token) {
