@@ -1,6 +1,7 @@
-import Queue from 'bull';
 import sha1 from 'sha1';
 import { ObjectId } from 'mongodb';
+
+/* Databases */
 import dbClient from '../utils/db';
 import redisClient from '../utils/redis';
 
@@ -11,19 +12,17 @@ import SuccessHandler from '../utils/network/success';
 class UsersController {
   static async postNew(req, res) {
     const { email, password } = req.body;
-    const userQueue = new Queue('userQueue');
+
     if (!email) return ErrorHandler.badRequest(res, 'Missing email');
     if (!password) return ErrorHandler.badRequest(res, 'Missing password');
 
-    const user = await dbClient.users.findOne({ email });
-    if (user) return ErrorHandler.badRequest(res, 'Already exist');
+    const userExist = await dbClient.users.findOne({ email });
+    if (userExist) return ErrorHandler.badRequest(res, 'Already exist');
 
-    const newUser = await dbClient.users.insertOne({
-      email,
-      password: sha1(password),
-    });
-    userQueue.add({ userId: newUser.ops[0]._id });
-    return SuccessHandler.created(res, { id: newUser.ops[0]._id, email });
+    const pwdSha = sha1(password);
+    const { ops } = await dbClient.users.insertOne({ email, password: pwdSha });
+
+    return SuccessHandler.created(res, { id: ops[0]._id, email: ops[0].email });
   }
 
   static async getMe(req, res) {
